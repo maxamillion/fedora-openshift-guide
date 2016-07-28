@@ -124,7 +124,7 @@ Licensing
 
 To make licensing easier, license headers in the source files will be
 a single line reference to Unique License Identifiers as defined by
-the [Linux Foundation's SPDX project](http://spdx.org/).
+the `Linux Foundation's SPDX project`_.
 
 For example, in a source file the full "GPL v2.0 or later" header text will be
 replaced by a single line:
@@ -152,10 +152,11 @@ terms of either of these licenses, i. e. with
 
     SPDX-License-Identifier:    GPL-2.0+    LGPL-2.1+
 
-All SPDX Unique License Identifiers available `at spdx.org`_.
+All SPDX Unique License Identifiers available at `spdx.org`_.
 
 .. _Fedora: https://getfedora.org
 .. _spdx.org: http://spdx.org/licenses
+.. _Linux Foundation's SPDX project: http://spdx.org
 .. _OpenShift Origin: https://openshift.org
 .. _OpenShift Ansible: https://github.com/openshift/openshift-ansible
 .. _here:
