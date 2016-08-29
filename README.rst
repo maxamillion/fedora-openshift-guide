@@ -86,15 +86,17 @@ We will save this file as ``~/inventory.txt``.
     [lb]
     origin-master01.example.com openshift_node_labels="{'type': 'infra'}"
 
-    # NOTE: Currently we require that masters be part of the SDN which requires
-    # that they also be nodes. However, in order to ensure that your masters are
-    # not burdened with running pods you should make them unschedulable by
-    # adding openshift_schedulable=False any node that's also a master.
     [nodes]
-    origin-master01.example.com openshift_node_labels="{'type': 'infra'}" openshift_schedulable=False
-    origin-node01.example.com openshift_node_labels="{'type': 'infra'}"
-    origin-node02.example.com openshift_node_labels="{'type': 'infra'}"
+    origin-master01.example.com openshift_node_labels="{'type': 'infra'}" openshift_schedulable=True
+    origin-node0[1:2].example.com openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
 
+
+.. note::
+    You will also need to set the ``openshift_ip`` and ``openshift_public_ip``
+    variables per host if you are deploying to a pre-existing set of machines
+    that do not have the same internal and external IP (such as would be in an
+    IaaS environment like OpenStack or AWS). `For reference
+    <https://github.com/openshift/openshift-ansible/blob/master/roles/openshift_common/README.md>`_.
 
 Deployment
 ----------
