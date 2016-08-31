@@ -121,6 +121,129 @@ This is going to take some time, there will be a lot of ansible output.
 .. FIXME
     Add missing steps and post-install here
 
+OpenShift Build Service (OSBS)
+=============================
+
+Now that OpenShift is successfully deployed, we can deploy `OpenShift Build
+Service`_ which is effectively a combination of client tooling, configuration,
+and custom build types in OpenShift.
+
+Docker Registry
+---------------
+
+If you would like to use a docker registry external to OpenShift, you will first
+need to set that up on another machine. In this example we will call ours
+``registry.example.com``.
+
+.. note::
+    The current generation of docker registry upstream is called
+    `docker distribution`_, configuration documentation can be found `here
+    <https://github.com/docker/distribution/blob/master/docs/configuration.md>`_.
+
+::
+
+    $ dnf -y install docker-distribution
+
+    # Edit the configuration file if you like:
+    #
+    #    /etc/docker-distribution/registry/config.yml
+    #
+
+    $ systemctl start docker-distribution
+
+
+.. note::
+    If your registry is setup without a valid ssl certificate, you will need to
+    modify the ``/etc/sysconfig/docker`` file on all OpenShift nodes to contain
+    the line ``INSECURE_REGISTRY='--insecure-registry registry.example.com'``.
+
+    If this line already exists in the configuration file then you can simply
+    add ``--insecure-registry registry.example.com`` inside the parenthesis.
+
+
+OSBS Deployment
+---------------
+
+We can use the `ansible-osbs-dedicated`_ to deploy OSBS on top of OpenShift,
+while the upstream documentation claims that it needs `OpenShift Dedicated`_,
+what is actually required is simply a pre-existing OpenShift deployment that is
+dedicated to being a build system (i.e. - isn't intermingled with container app
+development environments, deployments, or hosting)
+
+We will however want to make some modifications along the way.
+
+First git clone the repo.
+
+::
+
+    $ git clone https://github.com/projectatomic/ansible-osbs-dedicated.git
+
+    $ cd ansible-osbs-dedicated
+
+    $ cp config.yml.example config.yml
+
+We're going to want to edit ``config.yml`` to reflect the following
+
+.. note::
+    We're removing koji and pulp content as we're not using either in this
+    example.
+
+::
+
+    ---
+    # OpenShift Dedicated namespace
+    osbs_namespace: default
+
+    # Service Accounts to create
+    osbs_service_accounts:
+      - koji
+
+    # Permissions
+    osbs_readonly_users: []
+    osbs_readonly_groups: []
+    osbs_readwrite_users:
+      - system:serviceaccount:{{ osbs_namespace }}:koji
+      - system:serviceaccount:{{ osbs_namespace }}:builder
+    osbs_readwrite_groups:
+      - system:authenticated
+    osbs_admin_users: []
+    osbs_admin_groups: []
+
+    # Limit on the number of running pods - undefine or set to -1 to remove limit
+    osbs_master_max_pods: -1
+
+    # Set to true if you want to skip importing secrets in case the secret files
+    # are not found.
+    osbs_secret_can_fail: true
+
+Also going to want to remove the unnecessary from deploy.yml, the result should
+be:
+
+::
+
+    ---
+    - name: users and permissions
+      hosts: masters
+      vars_files:
+      - hardcoded-vars.yml
+      - config.yml
+      roles:
+      - osbs-master
+
+Now run the scripts provided, but using out inventory:
+
+::
+
+    $ ./update-roles.sh
+
+    $ ./deploy.sh -i ~/inventory.txt
+
+
+OSBS Client
+-----------
+
+
+
 Licensing
 =========
 
@@ -158,9 +281,14 @@ All SPDX Unique License Identifiers available at `spdx.org`_.
 
 .. _Fedora: https://getfedora.org
 .. _spdx.org: http://spdx.org/licenses
-.. _Linux Foundation's SPDX project: http://spdx.org
 .. _OpenShift Origin: https://openshift.org
+.. _Linux Foundation's SPDX project: http://spdx.org
+.. _OpenShift Dedicated: https://www.openshift.com/dedicated/
+.. _docker distribution: https://github.com/docker/distribution/
 .. _OpenShift Ansible: https://github.com/openshift/openshift-ansible
+.. _OpenShift Build Service: https://github.com/projectatomic/osbs-client
+.. _ansible-osbs-dedicated:
+    https://github.com/projectatomic/ansible-osbs-dedicated
 .. _here:
     https://github.com/openshift/openshift-ansible/blob/master/inventory/byo/hosts.origin.example
 .. _Origin Bring Your Own Host:
