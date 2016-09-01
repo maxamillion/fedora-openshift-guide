@@ -15,6 +15,9 @@ For a more verbose and all-encompassing document, please reference the
 optional or advanced topics about OpenShift's capabilities and the methods to
 deploy them.
 
+Also below you will find a section on running your OpenShift Origin cluster as
+an OpenShift Build Service (OSBS) instance.
+
 OpenShift v3 Bring Your Own Fedora Hosts
 ===========================================
 
