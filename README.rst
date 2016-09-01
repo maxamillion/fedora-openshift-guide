@@ -239,6 +239,18 @@ Now run the scripts provided, but using out inventory:
     $ ./deploy.sh -i ~/inventory.txt
 
 
+We'll need to configure the ``buildroot`` container for the builds which
+requires `atomic-reactor`_.
+
+::
+
+    # Install atomic-reactor on all nodes
+    $ ansible nodes -m dnf -a "pkg=atomic-reactor state=installed" -i ~/inventory.txt
+
+    # Create the buildroot container on all nodes
+    $ ansible nodes -m shell -a "docker build --no-cache --rm -t buildroot /usr/share/atomic-reactor/images/dockerhost-builder/" -i ~/inventory.txt
+
+
 OSBS Client
 -----------
 
