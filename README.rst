@@ -163,6 +163,11 @@ need to set that up on another machine. In this example we will call ours
     If this line already exists in the configuration file then you can simply
     add ``--insecure-registry registry.example.com`` inside the parenthesis.
 
+You're going to need to pre-stage all base images you want in your registry, so
+either build them yourself from scrach and push them into your registry or pull
+from the `Docker Hub`_, tag them for ``registry.example.com`` and then push them
+into the registry.
+
 
 OSBS Deployment
 ---------------
@@ -251,12 +256,48 @@ requires `atomic-reactor`_.
     $ ansible nodes -m dnf -a "pkg=atomic-reactor state=installed" -i ~/inventory.txt
 
     # Create the buildroot container on all nodes
-    $ ansible nodes -m shell -a "docker build --no-cache --rm -t buildroot /usr/share/atomic-reactor/images/dockerhost-builder/" -i ~/inventory.txt
+    # NOTE: The hardlink is a bit of a hack but is necessary
+    $ ansible nodes -m shell -a "ln /usr/share/atomic-reactor/atomic-reactor.tar.gz /usr/share/atomic-reactor/images/dockerhost-builder/atomic-reactor.tar.gz; docker build --no-cache --rm -t buildroot /usr/share/atomic-reactor/images/dockerhost-builder/" -i ~/inventory.txt
 
 
 OSBS Client
 -----------
 
+Need to configure the `osbs-client`_.
+
+Edit the file ``/etc/osbs.conf`` to reflect the following:
+
+::
+
+    [general]
+    verbose= 0
+    build_json_dir = /usr/share/osbs/
+    openshift_required_version = 1.1.0
+
+    [default]
+    username = kojibuilder
+    password = kojibuilder
+    openshift_url = https://origin-master01.example.com:8443
+    sources_command = fedpkg sources
+    build_type = prod
+    registry_uri = https://registry.example.com/v2
+    source_registry_uri = https://registry.example.com/v2
+    authoritative_registry = registry.example.com
+    vendor = Example.com
+    build_host = origin-master01.example.com
+    verify_ssl = False
+    use_auth = True
+    builder_use_auth = True
+    distribution_scope = private
+    registry_api_versions = v2
+    builder_openshift_url = https://172.17.0.1:8443/
+
+
+Now we can perform a build!
+
+::
+
+    $ osbs build -g https://github.com/maxamillion/atomic-reactor-dockerfile-test -b master -c testing -u testuser
 
 
 Licensing
@@ -296,6 +337,7 @@ All SPDX Unique License Identifiers available at `spdx.org`_.
 
 .. _Fedora: https://getfedora.org
 .. _spdx.org: http://spdx.org/licenses
+.. _Docker Hub: https://hub.docker.com/
 .. _OpenShift Origin: https://openshift.org
 .. _Linux Foundation's SPDX project: http://spdx.org
 .. _OpenShift Dedicated: https://www.openshift.com/dedicated/
