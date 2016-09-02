@@ -300,6 +300,23 @@ Now we can perform a build!
     $ osbs build -g https://github.com/maxamillion/atomic-reactor-dockerfile-test -b master -c testing -u testuser
 
 
+Once the build is complete you should see a message with a timestamp and the
+following text: ``- atomic_reactor.inner - INFO - build has finished
+successfully \o/``.
+
+From here we can then list the current builds, getting information about the
+most recent successful one including where to download it from.
+
+::
+
+    $ osbs list-builds
+     BUILD ID                                                | STATUS                    | IMAGE NAME
+    ---------------------------------------------------------+---------------------------+---------------------------------
+     atomic-reactor-dockerfile-test-master-1                 | complete                  | testing:0.0.1-7
+
+    $ osbs get-build atomic-reactor-dockerfile-test-master-1
+
+
 Licensing
 =========
 
