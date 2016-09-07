@@ -256,8 +256,10 @@ requires `atomic-reactor`_.
     $ ansible nodes -m dnf -a "pkg=atomic-reactor state=installed" -i ~/inventory.txt
 
     # Create the buildroot container on all nodes
-    # NOTE: The hardlink is a bit of a hack but is necessary
-    $ ansible nodes -m shell -a "ln /usr/share/atomic-reactor/atomic-reactor.tar.gz /usr/share/atomic-reactor/images/dockerhost-builder/atomic-reactor.tar.gz; docker build --no-cache --rm -t buildroot /usr/share/atomic-reactor/images/dockerhost-builder/" -i ~/inventory.txt
+    # NOTE: The hardlink is a bit of a hack but is necessary and this command
+    #       will need to be run each time atomic-reactor is updated on the node
+    #       hosts.
+    $ ansible nodes -m shell -a "rm /usr/share/atomic-reactor/images/dockerhost-builder/atomic-reactor.tar.gz; ln /usr/share/atomic-reactor/atomic-reactor.tar.gz /usr/share/atomic-reactor/images/dockerhost-builder/atomic-reactor.tar.gz; docker build --no-cache --rm -t buildroot /usr/share/atomic-reactor/images/dockerhost-builder/" -i ~/inventory.txt
 
 
 OSBS Client
@@ -316,6 +318,22 @@ most recent successful one including where to download it from.
 
     $ osbs get-build atomic-reactor-dockerfile-test-master-1
 
+Pro Tips
+--------
+
+Various tips for running an OSBS environment.
+
+OpenShift Node docker image clean up
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From time to time you might want to clean up "dangling" docker images from your
+nodes that are sometimes left behind by failed builds or from iterating builds
+of the ``buildroot``. This can easily be done across the entire environment
+using ansible.
+
+::
+
+    ansible nodes -i ~/ansible/origin-inventory -m shell -a 'for i in $(docker images -f "dangling=true" -q); do docker rmi $i; done'
 
 Licensing
 =========
